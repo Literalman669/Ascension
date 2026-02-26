@@ -17,13 +17,19 @@ Legend:
 - `[x]` Harden server/client access path in spatial ring data retrieval.
 - `[x]` Validate with Gradle `compileJava`, `test`, and `check`.
 
-## Batch 1 (in progress)
+## Batch 1 (completed)
 
-- `[~]` Remove remaining `System.out.println` debug spam in runtime code.
-- `[~]` Harden `PlayerSkillData` null/index edge cases (invalid skill IDs and unsafe slot updates).
-- `[~]` Replace hot-path `stream().toList()` snapshots with lower-overhead list copies in skill maps.
-- `[~]` Replace unchecked `Optional.get()` access in channeling recipe lookup.
-- `[ ]` Re-run focused build validation and keep branch green.
+- `[x]` Remove remaining `System.out.println` debug spam in runtime code.
+- `[x]` Harden `PlayerSkillData` null/index edge cases (invalid skill IDs and unsafe slot updates).
+- `[x]` Replace hot-path `stream().toList()` snapshots with lower-overhead list copies in skill maps.
+- `[x]` Replace unchecked `Optional.get()` access in channeling recipe lookup.
+- `[x]` Re-run focused build validation and keep branch green.
+
+## Batch 2 (next)
+
+- `[ ]` Start async teleport threading review in `SpatialRuptureAPI` and document safe-thread constraints.
+- `[ ]` Add missing guardrails around recipe/attachment fetches in frequently used skill paths.
+- `[ ]` Add first lightweight gameplay regression checks for cooldown and cast-thread transitions.
 
 ## Backlog (prioritized)
 
