@@ -56,6 +56,7 @@ public record OpenSpatialRingPacket() implements CustomPacketPayload {
                         scrollOffset = savedOffset;
                     }
                 }
+                final int finalScrollOffset = scrollOffset;
 
                 serverPlayer.openMenu(new SimpleMenuProvider(
                         (windowId, playerInventory, playerEntity) ->
@@ -64,7 +65,7 @@ public record OpenSpatialRingPacket() implements CustomPacketPayload {
                 ), (buffer -> {
                     buffer.writeUUID(uuid);
                     buffer.writeInt(data.getExtraRows());
-                    buffer.writeInt(scrollOffset); // Send scroll offset
+                    buffer.writeInt(finalScrollOffset); // Send scroll offset
                 }));
             }
         });
