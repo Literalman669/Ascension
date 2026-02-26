@@ -159,7 +159,10 @@ public class QiChannelingSkill extends AbstractActiveSkill {
             return;
         }
 
-        QiChannelingRecipe recipe = recipeHolder.get().value();
+        QiChannelingRecipe recipe = recipeHolder.map(RecipeHolder::value).orElse(null);
+        if (recipe == null) {
+            return;
+        }
 
         // Check qi cost
         if (playerData == null || playerData.getCurrentQi() < recipe.getRequiredQi()) {

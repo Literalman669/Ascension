@@ -30,7 +30,7 @@ public class SpiritualRingItemContainer extends EmptyContainer {
     private static final ITextureData ROW_TEXTURE = new TextureDataSubSection(CHEST_GUI,256,256,
             0,112,176,130);
 
-    private ArrayList<BaseRenderable> itemSlots = new ArrayList<>();
+    private final ArrayList<BaseRenderable> itemSlots = new ArrayList<>();
     public SpiritualRingItemContainer(IEasyGuiScreen screen,int x,int y){
         super(screen,x,y,0,0);
         setXPositioning(Positioning.CENTER);
@@ -85,7 +85,6 @@ public class SpiritualRingItemContainer extends EmptyContainer {
 
             }
         }
-        System.out.println("create a total of : "+ totalRows +" rows");
         addChild(scrollContainer);
     }
     @Override
