@@ -4,7 +4,6 @@ import net.lucent.easygui.elements.containers.EmptyContainer;
 import net.lucent.easygui.interfaces.IEasyGuiScreen;
 import net.lucent.easygui.interfaces.events.MouseScrollListener;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.thejadeproject.ascension.cultivation.player.data_attachements.PlayerSkillData;
 import net.thejadeproject.ascension.data_attachments.ModAttachments;
@@ -50,14 +49,43 @@ public class PassiveSkillScrollContainer extends EmptyContainer implements Mouse
         ((MainSkillContainer) getParent().getParent()).createSkillInfoPanel(slot.getCurrentSkill());
     }
     public void undoHoverSkill(PassiveSkillSlot slot){
-        if(this.hovered == slot) slot = null;
+        if (this.hovered == slot) {
+            this.hovered = null;
+        }
     }
     public void setHoveredSkill(PassiveSkillSlot slot){
         hovered = slot;
     }
 
     public List<PlayerSkillData.SkillMetaData> getPassiveSkills(){
+        if (Minecraft.getInstance().player == null) {
+            return List.of();
+        }
         return Minecraft.getInstance().player.getData(ModAttachments.PLAYER_SKILL_DATA).getPassiveSkills();
+    }
+
+    public int getMaxSlotOffset() {
+        return Math.max(getPassiveSkills().size() - rows, 0);
+    }
+
+    public boolean hasOverflow() {
+        return getMaxSlotOffset() > 0;
+    }
+
+    public float getScrollProgress() {
+        int max = getMaxSlotOffset();
+        if (max <= 0) {
+            return 0;
+        }
+        return slotOffset / (float) max;
+    }
+
+    public float getVisibleFraction() {
+        int total = getPassiveSkills().size();
+        if (total <= 0) {
+            return 1.0F;
+        }
+        return Math.min(rows / (float) total, 1.0F);
     }
     public void refresh(){
         for(PassiveSkillSlot slot:slots){
@@ -74,13 +102,17 @@ public class PassiveSkillScrollContainer extends EmptyContainer implements Mouse
     }
     @Override
     public void onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
-        //TODO
-        double offsetDirection =  (scrollY*-1);
-        if(offsetDirection > 0 && slotOffset >= getPassiveSkills().size()-rows) return;
-        if(offsetDirection < 0 && slotOffset == 0) return;
+        int direction = (int) Math.signum(scrollY * -1);
+        if (direction == 0) return;
 
-        slotOffset += (int) Math.signum(offsetDirection);
-        refresh();
+        int maxOffset = getMaxSlotOffset();
+        if (maxOffset <= 0) return;
+
+        int oldOffset = slotOffset;
+        slotOffset = Math.clamp(slotOffset + direction, 0, maxOffset);
+        if (oldOffset != slotOffset) {
+            refresh();
+        }
     }
 
 

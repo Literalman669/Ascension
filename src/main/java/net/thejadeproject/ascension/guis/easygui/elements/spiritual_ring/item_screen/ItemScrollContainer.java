@@ -22,14 +22,48 @@ public class ItemScrollContainer extends EmptyContainer implements MouseScrollLi
         SpatialRingItemContainerMenu menu = ((SpatialRingItemContainerScreen) getScreen()).getMenu();
         return Math.min(menu.getTotalRows(),menu.getVisibleRows());
     }
+
+    public int getSlotOffset() {
+        return slotOffset;
+    }
+
+    public int getTotalRows() {
+        SpatialRingItemContainerMenu menu = ((SpatialRingItemContainerScreen) getScreen()).getMenu();
+        return menu.getTotalRows();
+    }
+
+    public boolean hasOverflow() {
+        return getTotalOverflowRows() > 0;
+    }
+
+    public float getScrollProgress() {
+        int maxOffset = getTotalOverflowRows();
+        if (maxOffset <= 0) {
+            return 0.0F;
+        }
+        return slotOffset / (float) maxOffset;
+    }
+
+    public float getVisibleFraction() {
+        int totalRows = getTotalRows();
+        if (totalRows <= 0) {
+            return 1.0F;
+        }
+        return Math.min(getVisibleRows() / (float) totalRows, 1.0F);
+    }
+
     @Override
     public void onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
         //negative is up + is down
-        int change = (int) Math.signum(scrollY)*-1;
+        int change = (int) Math.signum(scrollY) * -1;
+        if (change == 0) {
+            return;
+        }
         int oldOffset = slotOffset;
-        slotOffset = (int) Math.clamp(slotOffset+Math.signum(scrollY)*-1,0,getTotalOverflowRows());
+        slotOffset = Math.clamp(slotOffset + change, 0, getTotalOverflowRows());
         if(oldOffset != slotOffset){
             updateYPos(change);
+            updateChildVisibility();
         }
     }
 
@@ -53,8 +87,7 @@ public class ItemScrollContainer extends EmptyContainer implements MouseScrollLi
     @Override
     public void renderChildren(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         guiGraphics.pose().pushPose();
-        //guiGraphics.pose().translate(0,-slotOffset*18,0);
-        //updateChildVisibility();
+        updateChildVisibility();
         super.renderChildren(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.pose().popPose();
     }

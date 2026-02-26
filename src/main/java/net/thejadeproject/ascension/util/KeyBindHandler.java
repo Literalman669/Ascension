@@ -152,6 +152,19 @@ public class KeyBindHandler {
         if (event.getKey() == SKILL_WHEEL_KEY.getKey().getValue() && event.getAction() == 1) {
             // Open menu
             if (minecraft.screen == null) {
+                Player player = minecraft.player;
+                if (player == null) {
+                    return;
+                }
+                boolean hasSlottedSkill = player.getData(ModAttachments.PLAYER_SKILL_DATA)
+                        .activeSkillContainer
+                        .getSkillIdList()
+                        .stream()
+                        .anyMatch(slot -> slot != null && slot.skillId != null);
+                if (!hasSlottedSkill) {
+                    player.displayClientMessage(Component.translatable("ascension.skill_wheel.no_skills"), true);
+                    return;
+                }
                 try {
                     SelectSkillMenu.open(Component.literal("Skill Wheel"));
                 } catch (Exception e) {

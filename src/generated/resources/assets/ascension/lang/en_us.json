@@ -555,6 +555,8 @@
   "key.ascension.open_spatial_ring": "Open Spatial Ring",
   "key.ascension.skill_menu": "Open Skill Menu",
   "key.ascension.skill_wheel": "Skill Wheel",
+  "ascension.skill_wheel.no_skills": "No active skills are slotted to the skill wheel.",
+  "ascension.spatial_ring.no_ring_found": "No Spatial Ring found in curio slots, hands, or inventory.",
   "key.ascension.toggle_artifact_mode": "Toggle Mode",
   "message.ascension.milk_denied": "§cMilk buckets are not drinkable in this mod. Use antidote pills instead!",
   "tooltip.ascension.finishing": "Finishing...",
