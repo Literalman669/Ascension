@@ -191,4 +191,11 @@ public class QiChannelingRecipe implements Recipe<QiChannelingRecipeInput> {
         this.ingredients.forEach(sizedIngredient -> baseIngredients.add(sizedIngredient.ingredient()));
         return baseIngredients;
     }
+
+    @Override
+    public boolean isSpecial() {
+        // Custom channeling recipes are not shown in the vanilla recipe book,
+        // which avoids client-side "Unknown recipe category" warnings.
+        return true;
+    }
 }
