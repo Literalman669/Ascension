@@ -59,17 +59,19 @@ public class ActiveSkillsContainer extends EmptyContainer {
     }
 
     private void renderScrollbar(GuiGraphics guiGraphics) {
-        if (!skillScrollContainer.hasOverflow()) {
-            return;
-        }
+        boolean hasOverflow = skillScrollContainer.hasOverflow();
         int trackX = 181;
         int trackY = 33;
         int trackHeight = 72;
         int trackWidth = 4;
-        guiGraphics.fill(trackX, trackY, trackX + trackWidth, trackY + trackHeight, 0xFF1B2230);
+        guiGraphics.fill(trackX, trackY, trackX + trackWidth, trackY + trackHeight, hasOverflow ? 0xFF1B2230 : 0xFF121720);
 
-        int thumbHeight = Math.max(10, Math.round(trackHeight * skillScrollContainer.getVisibleFraction()));
-        int thumbY = trackY + Math.round((trackHeight - thumbHeight) * skillScrollContainer.getScrollProgress());
-        guiGraphics.fill(trackX + 1, thumbY, trackX + trackWidth - 1, thumbY + thumbHeight, 0xFF6EA4FF);
+        int thumbHeight = hasOverflow
+                ? Math.max(10, Math.round(trackHeight * skillScrollContainer.getVisibleFraction()))
+                : trackHeight;
+        int thumbY = hasOverflow
+                ? trackY + Math.round((trackHeight - thumbHeight) * skillScrollContainer.getScrollProgress())
+                : trackY;
+        guiGraphics.fill(trackX + 1, thumbY, trackX + trackWidth - 1, thumbY + thumbHeight, hasOverflow ? 0xFF6EA4FF : 0xFF3D4B63);
     }
 }
