@@ -26,7 +26,11 @@ public class SpatialRingManager extends SavedData {
 
     public static SpatialRingManager get() {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-            Level overworld = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
+            var server = ServerLifecycleHooks.getCurrentServer();
+            if (server == null) {
+                return new SpatialRingManager();
+            }
+            Level overworld = server.getLevel(Level.OVERWORLD);
             if (overworld != null) {
                 return ((ServerLevel) overworld).getDataStorage().computeIfAbsent(new Factory<>(SpatialRingManager::new, SpatialRingManager::load), NAME);
             }

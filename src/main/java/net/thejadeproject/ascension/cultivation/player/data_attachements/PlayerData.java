@@ -236,12 +236,14 @@ public class PlayerData {
             }
         }
 
-        for(CastingInstance instance : castingThreads.values()){
-            if(!instance.tick(player.level(),player)){
-                
-                removeCastingInstanceThread(instance.uuid);
-
+        List<UUID> completedSecondaryCasts = new ArrayList<>();
+        for (Map.Entry<UUID, CastingInstance> entry : castingThreads.entrySet()) {
+            if (!entry.getValue().tick(player.level(), player)) {
+                completedSecondaryCasts.add(entry.getKey());
             }
+        }
+        for (UUID completedCast : completedSecondaryCasts) {
+            removeCastingInstanceThread(completedCast);
         }
     }
 
@@ -258,10 +260,14 @@ public class PlayerData {
     }
 
     public void tickAllCooldowns(){
-        for(ResourceLocation skill : cooldowns.keySet()){
-            cooldowns.put(skill,cooldowns.get(skill)-1);
-            if(cooldowns.get(skill) <= 0){
-                cooldowns.remove(skill);
+        Iterator<Map.Entry<ResourceLocation, Integer>> iterator = cooldowns.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<ResourceLocation, Integer> entry = iterator.next();
+            int nextValue = entry.getValue() - 1;
+            if (nextValue <= 0) {
+                iterator.remove();
+            } else {
+                entry.setValue(nextValue);
             }
         }
     }

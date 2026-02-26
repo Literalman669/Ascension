@@ -42,7 +42,11 @@ public class SpatialRuptureTalismanT2 extends BaseTeleportTalisman {
         CompletableFuture<Boolean> future = SpatialRuptureAPI.randomTeleport(player, level, TELEPORT_RADIUS);
 
         future.thenAccept(success -> {
-            level.getServer().execute(() -> {
+            var server = level.getServer();
+            if (server == null) {
+                return;
+            }
+            server.execute(() -> {
                 finalizeTeleport(player, usedStack, usedSlot, success, true, "ascension.teleport.success.random");
             });
         });

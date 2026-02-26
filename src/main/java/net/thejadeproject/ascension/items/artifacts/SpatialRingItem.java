@@ -12,6 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.thejadeproject.ascension.AscensionCraft;
 import net.thejadeproject.ascension.menus.spatialrings.*;
 import net.thejadeproject.ascension.network.spatialrings.SyncSpatialRingInventoryPayload;
@@ -32,7 +33,11 @@ public class SpatialRingItem extends Item {
             return null;
 
         UUID uuid = getOrCreateUUID(stack);
-        return SpatialRingManager.get().getOrCreateSpatialring(uuid);
+        SpatialRingManager manager = SpatialRingManager.get();
+        if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
+            return manager.getOrCreateSpatialring(uuid);
+        }
+        return manager.getSpatialRing(uuid).orElse(null);
     }
 
     private static UUID getOrCreateUUID(ItemStack stack) {

@@ -298,14 +298,10 @@ public class BarrierFormation extends FormationNode implements IDummyListenerNod
     }
 
     public void collisionCheck(IFormationCore core,Level level,BlockPos pos,List<ItemStack> jades){
-
-        List<Projectile> projectiles = new ArrayList<>();
         List<Entity> entities = level.getEntities((Entity) null,(new AABB(pos)).inflate(BARRIER_RADIUS), entity ->{
-            if(entity instanceof Projectile projectile) {
+            if(entity instanceof Projectile) {
                 //TODO perform early damage calculations for this entity
                 //TODO only perform calcs if coming from outside
-                projectiles.add(projectile);
-
             }
             boolean result = BoundCheckHelpers.doesSphereOverlapBoundingBox(pos.getCenter(),BARRIER_RADIUS,entity.getBoundingBox());
             if(result){
@@ -362,7 +358,6 @@ public class BarrierFormation extends FormationNode implements IDummyListenerNod
     }
     @Override
     public int getEnergyCost() {
-        int amount = BASE_QI_DRAIN + (isDestroyed ? HEALING_QI_DRAIN : 0);
         return BASE_QI_DRAIN + (isDestroyed ? HEALING_QI_DRAIN : 0);
     }
 
