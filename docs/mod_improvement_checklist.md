@@ -33,7 +33,15 @@ Legend:
 - `[x]` Eliminate creative-tab duplicate warnings via JEI subtype interpreters for physique and formation variants.
 - `[x]` Re-test in-game after restarts and confirm targeted warnings/errors are gone from `run/logs/latest.log`.
 
-## Batch 3 (next)
+## Batch 3 (completed)
+
+- `[x]` Audit visual UX of custom GUI screens (Skill Menu, Introspection, keybind-driven UI access points).
+- `[x]` Add visible scrollbar rails/handles for Skill Menu active and passive lists.
+- `[x]` Improve scroll container behavior and offset math for active/passive/spatial ring list rendering.
+- `[x]` Add clear in-game feedback when opening Spatial Ring without a ring and when skill wheel has no slotted skills.
+- `[x]` Rebuild and validate via manual GUI smoke test recording.
+
+## Batch 4 (next)
 
 - `[ ]` Start async teleport threading review in `SpatialRuptureAPI` and document safe-thread constraints.
 - `[ ]` Add missing guardrails around recipe/attachment fetches in frequently used skill paths.
