@@ -25,7 +25,15 @@ Legend:
 - `[x]` Replace unchecked `Optional.get()` access in channeling recipe lookup.
 - `[x]` Re-run focused build validation and keep branch green.
 
-## Batch 2 (next)
+## Batch 2 (completed)
+
+- `[x]` Run real gameplay smoke test and prioritize concrete runtime issues from live logs.
+- `[x]` Fix runtime data/resource errors (Modopedia IDs, recipe JSON format, missing model/blockstate, invalid temp resource path, config translation keys).
+- `[x]` Suppress recipe-book category warning for qi channeling by marking those recipes special.
+- `[x]` Eliminate creative-tab duplicate warnings via JEI subtype interpreters for physique and formation variants.
+- `[x]` Re-test in-game after restarts and confirm targeted warnings/errors are gone from `run/logs/latest.log`.
+
+## Batch 3 (next)
 
 - `[ ]` Start async teleport threading review in `SpatialRuptureAPI` and document safe-thread constraints.
 - `[ ]` Add missing guardrails around recipe/attachment fetches in frequently used skill paths.
