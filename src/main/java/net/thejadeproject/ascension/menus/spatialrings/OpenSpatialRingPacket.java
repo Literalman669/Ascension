@@ -1,6 +1,7 @@
 package net.thejadeproject.ascension.menus.spatialrings;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,39 +33,40 @@ public record OpenSpatialRingPacket() implements CustomPacketPayload {
             if (context.player() instanceof ServerPlayer serverPlayer) {
                 ItemStack spatialRing = SpatialRingUtils.findSpatialringForHotkeys(serverPlayer, true);
 
-                if (!spatialRing.isEmpty() && spatialRing.getItem() instanceof SpatialRingItem) {
-                    SpatialRingData data = SpatialRingItem.getData(spatialRing);
-                    if (data != null) {
-                        UUID uuid = data.getUuid();
+                if (spatialRing.isEmpty() || !(spatialRing.getItem() instanceof SpatialRingItem)) {
+                    serverPlayer.displayClientMessage(Component.translatable("ascension.spatial_ring.no_ring_found"), true);
+                    return;
+                }
 
-                        data.updateAccessRecords(serverPlayer.getName().getString(), System.currentTimeMillis());
+                SpatialRingData data = SpatialRingItem.getData(spatialRing);
+                if (data == null) {
+                    serverPlayer.displayClientMessage(Component.translatable("ascension.spatial_ring.no_ring_found"), true);
+                    return;
+                }
 
-                        // Get saved scroll offset for this player and ring
-                        int scrollOffset;
-                        Map<UUID, Map<Player, Integer>> playerScrollOffsets = SpatialRingStorageContainer.getPlayerScrollOffsets();
-                        Map<Player, Integer> ringOffsets = playerScrollOffsets.get(uuid);
-                        if (ringOffsets != null) {
-                            Integer savedOffset = ringOffsets.get(serverPlayer);
-                            if (savedOffset != null) {
-                                scrollOffset = savedOffset;
-                            } else {
-                                scrollOffset = 0;
-                            }
-                        } else {
-                            scrollOffset = 0;
-                        }
+                UUID uuid = data.getUuid();
+                data.updateAccessRecords(serverPlayer.getName().getString(), System.currentTimeMillis());
 
-                        serverPlayer.openMenu(new SimpleMenuProvider(
-                                (windowId, playerInventory, playerEntity) ->
-                                        new SpatialRingStorageContainer(windowId, playerInventory, uuid, data.getHandler(), data.getTotalRows()),
-                                spatialRing.getHoverName()
-                        ), (buffer -> {
-                            buffer.writeUUID(uuid);
-                            buffer.writeInt(data.getExtraRows());
-                            buffer.writeInt(scrollOffset); // Send scroll offset
-                        }));
+                int scrollOffset = 0;
+                Map<UUID, Map<Player, Integer>> playerScrollOffsets = SpatialRingStorageContainer.getPlayerScrollOffsets();
+                Map<Player, Integer> ringOffsets = playerScrollOffsets.get(uuid);
+                if (ringOffsets != null) {
+                    Integer savedOffset = ringOffsets.get(serverPlayer);
+                    if (savedOffset != null) {
+                        scrollOffset = savedOffset;
                     }
                 }
+                final int finalScrollOffset = scrollOffset;
+
+                serverPlayer.openMenu(new SimpleMenuProvider(
+                        (windowId, playerInventory, playerEntity) ->
+                                new SpatialRingStorageContainer(windowId, playerInventory, uuid, data.getHandler(), data.getTotalRows()),
+                        spatialRing.getHoverName()
+                ), (buffer -> {
+                    buffer.writeUUID(uuid);
+                    buffer.writeInt(data.getExtraRows());
+                    buffer.writeInt(finalScrollOffset); // Send scroll offset
+                }));
             }
         });
     }

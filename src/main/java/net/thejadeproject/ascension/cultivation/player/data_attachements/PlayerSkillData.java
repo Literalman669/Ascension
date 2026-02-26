@@ -3,7 +3,7 @@ package net.thejadeproject.ascension.cultivation.player.data_attachements;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.thejadeproject.ascension.constants.SkillType;
@@ -39,7 +39,7 @@ public class PlayerSkillData {
     }
 
     public boolean hasSkill(String skill_id,String skillType){
-        if(skillType.equals("Active")) return activeSkillHashMap.containsKey(skill_id);
+        if("Active".equals(skillType)) return activeSkillHashMap.containsKey(skill_id);
         return passiveSkillHashMap.containsKey(skill_id);
     }
     public ActiveSkillContainer activeSkillContainer = new ActiveSkillContainer();
@@ -89,8 +89,10 @@ public class PlayerSkillData {
             return -1;
         }
         public void unSlotSkill(ResourceLocation skillId){
-
-            skillIdList.set(getSlot(skillId),SkillSlot.EMPTY_SLOT);
+            int slot = getSlot(skillId);
+            if (slot >= 0) {
+                skillIdList.set(slot, SkillSlot.EMPTY_SLOT);
+            }
         }
         public boolean hasSkill(ResourceLocation skillId){
             return getSlot(skillId) != -1;
@@ -177,7 +179,9 @@ public class PlayerSkillData {
             skillMetaData.fixed = NBTUtil.getBooleanWithDefault(compound,"fixed",false);
             skillMetaData.permanent = NBTUtil.getBooleanWithDefault(compound,"permanent",false);
             ISkill skill = AscensionRegistries.Skills.SKILL_REGISTRY.get(ResourceLocation.bySeparator(skillMetaData.skillId,':'));
-            if(compound.contains("data")) skillMetaData.data = skill.getPersistentDataInstance(compound.getCompound("data"));
+            if(compound.contains("data") && skill != null) {
+                skillMetaData.data = skill.getPersistentDataInstance(compound.getCompound("data"));
+            }
             return skillMetaData;
         }
     }
@@ -189,21 +193,21 @@ public class PlayerSkillData {
     private final List<Pair<Boolean, SkillMetaData>> passiveSkillBuffer = new ArrayList<>();
 
     public SkillMetaData getActiveSkill(String skillId){
-        if(activeSkillHashMap.containsKey(skillId)) return activeSkillHashMap.get(skillId);
-        return null;
+        return activeSkillHashMap.get(skillId);
     }
     public SkillMetaData getPassiveSkill(String skillId){
-        if(passiveSkillHashMap.containsKey(skillId)) return passiveSkillHashMap.get(skillId);
-        return null;
+        return passiveSkillHashMap.get(skillId);
     }
     public SkillMetaData getSkill(String skillId){
         ISkill skill = AscensionRegistries.Skills.SKILL_REGISTRY.get(ResourceLocation.bySeparator(skillId,':'));
+        if(skill == null) return null;
         if(skill instanceof AbstractActiveSkill) return getActiveSkill(skillId);
         return getPassiveSkill(skillId);
     }
 
     public boolean hasSkill(String skillId){
         ISkill skill = AscensionRegistries.Skills.SKILL_REGISTRY.get(ResourceLocation.bySeparator(skillId,':'));
+        if(skill == null) return false;
         if(skill instanceof AbstractActiveSkill) return hasActiveSkill(skillId);
         return hasPassiveSkill(skillId);
     }
@@ -216,10 +220,10 @@ public class PlayerSkillData {
 
 
     public List<SkillMetaData> getActiveSkills(){
-        return activeSkillHashMap.values().stream().toList();
+        return new ArrayList<>(activeSkillHashMap.values());
     }
     public List<SkillMetaData> getPassiveSkills(){
-        return passiveSkillHashMap.values().stream().toList();
+        return new ArrayList<>(passiveSkillHashMap.values());
     }
 
     public List<SkillMetaData> getSkills(){
@@ -229,10 +233,12 @@ public class PlayerSkillData {
     }
     public void addSkill(ResourceLocation skillId,boolean fixed, boolean permanent){
         ISkill skill = AscensionRegistries.Skills.SKILL_REGISTRY.get(skillId);
+        if(skill == null) return;
         addSkill(skillId,fixed,permanent,skill.getPersistentDataInstance());
     }
     public void addSkill(ResourceLocation skillId,boolean fixed, boolean permanent,IPersistentSkillData data){
         ISkill skill = AscensionRegistries.Skills.SKILL_REGISTRY.get(skillId);
+        if(skill == null) return;
         if(skill.getType() == SkillType.ACTIVE){
             addActiveSkill(skillId.toString(),fixed,permanent,data);
         }else{
@@ -242,7 +248,7 @@ public class PlayerSkillData {
         player.syncData(ModAttachments.PLAYER_SKILL_DATA);
     }
     public void addSkill(String skillId, String type, boolean fixed, IPersistentSkillData data){
-        if(type.equals("Active")) addActiveSkill(skillId,fixed,data);
+        if("Active".equals(type)) addActiveSkill(skillId,fixed,data);
         else addPassiveSkill(skillId,fixed,data);
         player.syncData(ModAttachments.PLAYER_SKILL_DATA);
     }
@@ -359,6 +365,8 @@ public class PlayerSkillData {
         skillTag.put("Passive",tag2);
     }
     public void loadSkillNBTData(CompoundTag compound){
+        activeSkillHashMap.clear();
+        passiveSkillHashMap.clear();
         for(String key:compound.getCompound("Active").getAllKeys()){
             activeSkillHashMap.put(key, SkillMetaData.loadSkillNBTData(compound.getCompound("Active").getCompound(key)));
         }
@@ -370,7 +378,9 @@ public class PlayerSkillData {
     public void loadNBTData(CompoundTag tag, HolderLookup.Provider provider){
 
         loadSkillNBTData(tag.getCompound("skill_data"));
-        loadSkillContainerNBTData((ListTag) tag.get("equip_skill_list"));
+        if (tag.contains("equip_skill_list", Tag.TAG_LIST)) {
+            loadSkillContainerNBTData(tag.getList("equip_skill_list", Tag.TAG_COMPOUND));
+        }
 
     }
     public void saveNBTData(CompoundTag tag,HolderLookup.Provider provider){

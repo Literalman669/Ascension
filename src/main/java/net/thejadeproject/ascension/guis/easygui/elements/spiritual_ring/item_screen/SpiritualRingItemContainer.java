@@ -7,7 +7,6 @@ import net.lucent.easygui.elements.inventory.DisplaySlot;
 import net.lucent.easygui.interfaces.IEasyGuiScreen;
 import net.lucent.easygui.interfaces.ITextureData;
 import net.lucent.easygui.properties.Positioning;
-import net.lucent.easygui.util.textures.TextureData;
 import net.lucent.easygui.util.textures.TextureDataSubSection;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -19,9 +18,6 @@ import java.util.ArrayList;
 
 public class SpiritualRingItemContainer extends EmptyContainer {
     private static final ResourceLocation CHEST_GUI = ResourceLocation.fromNamespaceAndPath(AscensionCraft.MOD_ID,"textures/gui/spatial_rings/spatial_ring.png");
-
-    private static final ResourceLocation SCROLLBAR_TEXTURE = ResourceLocation.fromNamespaceAndPath(AscensionCraft.MOD_ID,"textures/gui/spatial_rings/scroll_bar.png");
-    private static final int VISIBLE_ROWS = 6;
     private static final int SLOTS_PER_ROW = 9;
     private static final ITextureData CHEST_TEXTURE = new TextureDataSubSection(CHEST_GUI,256,256,
             0,0,176,96);
@@ -30,7 +26,8 @@ public class SpiritualRingItemContainer extends EmptyContainer {
     private static final ITextureData ROW_TEXTURE = new TextureDataSubSection(CHEST_GUI,256,256,
             0,112,176,130);
 
-    private ArrayList<BaseRenderable> itemSlots = new ArrayList<>();
+    private final ArrayList<BaseRenderable> itemSlots = new ArrayList<>();
+    private final ItemScrollContainer scrollContainer;
     public SpiritualRingItemContainer(IEasyGuiScreen screen,int x,int y){
         super(screen,x,y,0,0);
         setXPositioning(Positioning.CENTER);
@@ -40,7 +37,7 @@ public class SpiritualRingItemContainer extends EmptyContainer {
         setY(-getHeight()/2);
         setWidth(CHEST_TEXTURE.getWidth());
         setHeight(getHeight());
-        createInventory(((SpatialRingItemContainerScreen) screen).getMenu().getTotalRows());
+        scrollContainer = createInventory(((SpatialRingItemContainerScreen) screen).getMenu().getTotalRows());
         addPlayerInventory();
         addPlayerHotBar();
     }
@@ -72,7 +69,7 @@ public class SpiritualRingItemContainer extends EmptyContainer {
         }
     }
 
-    public void createInventory(int totalRows){
+    public ItemScrollContainer createInventory(int totalRows){
         ItemScrollContainer scrollContainer = new ItemScrollContainer(getScreen(),8,17,18*getVisibleRows());
         for (int row = 0; row < totalRows; row++) {
             for (int col = 0; col < SLOTS_PER_ROW; col++) {
@@ -85,8 +82,8 @@ public class SpiritualRingItemContainer extends EmptyContainer {
 
             }
         }
-        System.out.println("create a total of : "+ totalRows +" rows");
         addChild(scrollContainer);
+        return scrollContainer;
     }
     @Override
     public void renderSelf(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
@@ -97,5 +94,23 @@ public class SpiritualRingItemContainer extends EmptyContainer {
             ROW_TEXTURE.renderTexture(guiGraphics,0, TOP_CHEST_TEXTURE.getHeight()+i*ROW_TEXTURE.getHeight());
         }
         CHEST_TEXTURE.renderTexture(guiGraphics,0, TOP_CHEST_TEXTURE.getHeight()+visibleRows*ROW_TEXTURE.getHeight());
+        renderScrollbar(guiGraphics);
+    }
+
+    private void renderScrollbar(GuiGraphics guiGraphics) {
+        boolean hasOverflow = scrollContainer.hasOverflow();
+        int trackX = 170;
+        int trackY = 17;
+        int trackHeight = getVisibleRows() * 18;
+        int trackWidth = 4;
+        guiGraphics.fill(trackX, trackY, trackX + trackWidth, trackY + trackHeight, hasOverflow ? 0xFF1B2230 : 0xFF121720);
+
+        int thumbHeight = hasOverflow
+                ? Math.max(12, Math.round(trackHeight * scrollContainer.getVisibleFraction()))
+                : trackHeight;
+        int thumbY = hasOverflow
+                ? trackY + Math.round((trackHeight - thumbHeight) * scrollContainer.getScrollProgress())
+                : trackY;
+        guiGraphics.fill(trackX + 1, thumbY, trackX + trackWidth - 1, thumbY + thumbHeight, hasOverflow ? 0xFF6EA4FF : 0xFF3D4B63);
     }
 }

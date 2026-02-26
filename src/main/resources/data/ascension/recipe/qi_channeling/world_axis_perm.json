@@ -12,8 +12,10 @@
     "id": "ascension:world_axis_talisman",
     "count": 1
   },
-  "optional_component": {
-    "ascension:permanent": true,
-    "ascension:recharge_progress": 100
-  }
+  "optional_component": [
+    {
+      "ascension:permanent": true,
+      "ascension:recharge_progress": 100
+    }
+  ]
 }

@@ -1,6 +1,5 @@
 package net.thejadeproject.ascension.guis.easygui.elements.spiritual_ring.item_screen;
 
-import net.lucent.easygui.elements.BaseRenderable;
 import net.lucent.easygui.elements.containers.EmptyContainer;
 import net.lucent.easygui.interfaces.ContainerRenderable;
 import net.lucent.easygui.interfaces.IEasyGuiScreen;
@@ -23,14 +22,48 @@ public class ItemScrollContainer extends EmptyContainer implements MouseScrollLi
         SpatialRingItemContainerMenu menu = ((SpatialRingItemContainerScreen) getScreen()).getMenu();
         return Math.min(menu.getTotalRows(),menu.getVisibleRows());
     }
+
+    public int getSlotOffset() {
+        return slotOffset;
+    }
+
+    public int getTotalRows() {
+        SpatialRingItemContainerMenu menu = ((SpatialRingItemContainerScreen) getScreen()).getMenu();
+        return menu.getTotalRows();
+    }
+
+    public boolean hasOverflow() {
+        return getTotalOverflowRows() > 0;
+    }
+
+    public float getScrollProgress() {
+        int maxOffset = getTotalOverflowRows();
+        if (maxOffset <= 0) {
+            return 0.0F;
+        }
+        return slotOffset / (float) maxOffset;
+    }
+
+    public float getVisibleFraction() {
+        int totalRows = getTotalRows();
+        if (totalRows <= 0) {
+            return 1.0F;
+        }
+        return Math.min(getVisibleRows() / (float) totalRows, 1.0F);
+    }
+
     @Override
     public void onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
         //negative is up + is down
-        int change = (int) Math.signum(scrollY)*-1;
+        int change = (int) Math.signum(scrollY) * -1;
+        if (change == 0) {
+            return;
+        }
         int oldOffset = slotOffset;
-        slotOffset = (int) Math.clamp(slotOffset+Math.signum(scrollY)*-1,0,getTotalOverflowRows());
+        slotOffset = Math.clamp(slotOffset + change, 0, getTotalOverflowRows());
         if(oldOffset != slotOffset){
             updateYPos(change);
+            updateChildVisibility();
         }
     }
 
@@ -41,20 +74,9 @@ public class ItemScrollContainer extends EmptyContainer implements MouseScrollLi
     }
 
     public void updateChildVisibility(){
-        int yOffset = -slotOffset*18;
-        System.out.println("number of rows");
-        System.out.println(getChildren().size()/9);
-        for(int i= 0;i<getChildren().size(); i++) {
-            ContainerRenderable renderable = getChildren().get(i);
-            renderable.setVisible(!(renderable.getY() + renderable.getHeight() < 0 || renderable.getY() >= getVisibleRows() * 18));
-
-            if (Math.floor(i / 9) > 5) {
-                System.out.println("this is slot " + Math.floor(i / 9));
-                System.out.println("y:" + (getChildren().get(i).getY()+yOffset));
-                System.out.println("should be visible " + (renderable.getY()+yOffset < getVisibleRows()*18));
-                System.out.println("is visible: "+ (renderable.isVisible()));
-            }
-
+        int visibleRowsHeight = getVisibleRows() * 18;
+        for (ContainerRenderable renderable : getChildren()) {
+            renderable.setVisible(!(renderable.getY() + renderable.getHeight() < 0 || renderable.getY() >= visibleRowsHeight));
         }
     }
     public void updateYPos(int direction){
@@ -65,8 +87,7 @@ public class ItemScrollContainer extends EmptyContainer implements MouseScrollLi
     @Override
     public void renderChildren(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         guiGraphics.pose().pushPose();
-        //guiGraphics.pose().translate(0,-slotOffset*18,0);
-        //updateChildVisibility();
+        updateChildVisibility();
         super.renderChildren(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.pose().popPose();
     }

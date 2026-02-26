@@ -24,13 +24,15 @@ public class ActiveSkillsContainer extends EmptyContainer {
             0,89,192,208
     );
     public Label selectedSkillLabel;
+    private final SkillScrollContainer skillScrollContainer;
 
     public ActiveSkillsContainer(IEasyGuiScreen screen){
         super(screen,0,89,0,0);
 
         setWidth(192);
         setHeight(119);
-        addChild(new SkillScrollContainer(screen,15,33,4,9));
+        skillScrollContainer = new SkillScrollContainer(screen,15,33,4,9);
+        addChild(skillScrollContainer);
         Label label = new Label(screen,56,25, Component.empty());
         label.centered = true;
         label.textColor = -1;
@@ -53,9 +55,23 @@ public class ActiveSkillsContainer extends EmptyContainer {
     public void renderSelf(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderSelf(guiGraphics, mouseX, mouseY, partialTick);
         background.renderTexture(guiGraphics);
+        renderScrollbar(guiGraphics);
     }
 
+    private void renderScrollbar(GuiGraphics guiGraphics) {
+        boolean hasOverflow = skillScrollContainer.hasOverflow();
+        int trackX = 181;
+        int trackY = 33;
+        int trackHeight = 72;
+        int trackWidth = 4;
+        guiGraphics.fill(trackX, trackY, trackX + trackWidth, trackY + trackHeight, hasOverflow ? 0xFF1B2230 : 0xFF121720);
 
-
-
+        int thumbHeight = hasOverflow
+                ? Math.max(10, Math.round(trackHeight * skillScrollContainer.getVisibleFraction()))
+                : trackHeight;
+        int thumbY = hasOverflow
+                ? trackY + Math.round((trackHeight - thumbHeight) * skillScrollContainer.getScrollProgress())
+                : trackY;
+        guiGraphics.fill(trackX + 1, thumbY, trackX + trackWidth - 1, thumbY + thumbHeight, hasOverflow ? 0xFF6EA4FF : 0xFF3D4B63);
+    }
 }

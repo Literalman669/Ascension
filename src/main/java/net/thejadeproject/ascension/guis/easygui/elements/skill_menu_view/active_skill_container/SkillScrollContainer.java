@@ -82,11 +82,19 @@ public class SkillScrollContainer extends EmptyContainer implements MouseScrollL
                 slot.setCurrentSkill(null);
             }
         }
+        if (Minecraft.getInstance().player == null) {
+            return;
+        }
         List<PlayerSkillData.SkillMetaData> data =  Minecraft.getInstance().player.getData(ModAttachments.PLAYER_SKILL_DATA).getActiveSkills();
+        int startIndex = slotOffset * columns;
 
-        for (int i = slotOffset*columns;i<data.size();i++){
-            int row = (int) (i / columns);
-            int column = i%columns;
+        for (int i = startIndex; i < data.size(); i++){
+            int relativeIndex = i - startIndex;
+            int row = relativeIndex / columns;
+            int column = relativeIndex % columns;
+            if (row >= rows) {
+                break;
+            }
             skillSlots.get(row).get(column).setCurrentSkill(ResourceLocation.bySeparator(data.get(i).skillId,':'));
         }
     }
@@ -103,18 +111,51 @@ public class SkillScrollContainer extends EmptyContainer implements MouseScrollL
         hovered = slot;
     }
     public int getTotalRowsNeeded(){
-        List<PlayerSkillData.SkillMetaData> data =  Minecraft.getInstance().player.getData(ModAttachments.PLAYER_SKILL_DATA).getSkills();
-        return (int) skillSlots.size()/columns;
+        if (Minecraft.getInstance().player == null) {
+            return 0;
+        }
+        List<PlayerSkillData.SkillMetaData> data = Minecraft.getInstance().player.getData(ModAttachments.PLAYER_SKILL_DATA).getActiveSkills();
+        if (data.isEmpty()) {
+            return 0;
+        }
+        return (data.size() + columns - 1) / columns;
+    }
+
+    public int getMaxSlotOffset() {
+        return Math.max(getTotalRowsNeeded() - rows, 0);
+    }
+
+    public boolean hasOverflow() {
+        return getMaxSlotOffset() > 0;
+    }
+
+    public float getScrollProgress() {
+        int max = getMaxSlotOffset();
+        if (max <= 0) {
+            return 0;
+        }
+        return slotOffset / (float) max;
+    }
+
+    public float getVisibleFraction() {
+        int totalRows = getTotalRowsNeeded();
+        if (totalRows <= 0) {
+            return 1.0F;
+        }
+        return Math.min(rows / (float) totalRows, 1.0F);
     }
     @Override
     public void onMouseScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
-        //TODO
-        double offsetDirection =  (scrollY*-1);
-        if(offsetDirection > 0 && slotOffset >= getTotalRowsNeeded()-rows) return;
-        if(offsetDirection < 0 && slotOffset == 0) return;
+        int direction = (int) Math.signum(scrollY * -1);
+        if (direction == 0) return;
+        int maxOffset = getMaxSlotOffset();
+        if (maxOffset <= 0) return;
 
-        slotOffset += (int) Math.signum(offsetDirection);
-        refresh();
+        int oldOffset = slotOffset;
+        slotOffset = Math.clamp(slotOffset + direction, 0, maxOffset);
+        if (oldOffset != slotOffset) {
+            refresh();
+        }
     }
     @Override
     public void onClick(double mouseX, double mouseY, int button, boolean clicked) {

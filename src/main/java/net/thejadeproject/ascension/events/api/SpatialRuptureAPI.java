@@ -26,8 +26,11 @@ public class SpatialRuptureAPI {
             try {
                 BlockPos safePos = findSafeLocationInRadius(world, player, player.blockPosition(), radius);
                 if (safePos != null) {
-                    world.getServer().execute(() -> teleportPlayer(player, world, safePos));
-                    return true;
+                    var server = world.getServer();
+                    if (server != null) {
+                        server.execute(() -> teleportPlayer(player, world, safePos));
+                        return true;
+                    }
                 }
                 return false;
             } catch (Exception e) {
@@ -81,19 +84,24 @@ public class SpatialRuptureAPI {
         level.getChunkSource().addRegionTicket(TELEPORT_TICKET, cp, 1, owner);
 
         // Wait up to 200 ms for the chunk to become accessible
-        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(200);
-        while (System.nanoTime() < deadline) {
-            if (level.hasChunk(cp.x, cp.z)) {
-                BlockPos surface = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                        new BlockPos(x, 0, z));
-                level.getChunkSource().removeRegionTicket(TELEPORT_TICKET, cp, 1, owner);
-                return surface;
+        try {
+            long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(200);
+            while (System.nanoTime() < deadline) {
+                if (level.hasChunk(cp.x, cp.z)) {
+                    return level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                            new BlockPos(x, 0, z));
+                }
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
             }
-            try { Thread.sleep(5); } catch (InterruptedException ignored) {}
+            return null;
+        } finally {
+            level.getChunkSource().removeRegionTicket(TELEPORT_TICKET, cp, 1, owner);
         }
-        // Timed-out – chunk never loaded, remove ticket
-        level.getChunkSource().removeRegionTicket(TELEPORT_TICKET, cp, 1, owner);
-        return null;
     }
 
     /* --------------------------------------------------------------------- *
@@ -148,8 +156,8 @@ public class SpatialRuptureAPI {
     private static boolean isAirOrWater(ServerLevel level, BlockPos pos) {
         var state = level.getBlockState(pos);
         return state.isAir()
-                || state.getFluidState().isEmpty()
-                || state.is(net.minecraft.world.level.block.Blocks.WATER);
+                || state.is(net.minecraft.world.level.block.Blocks.WATER)
+                || state.getCollisionShape(level, pos).isEmpty();
     }
 
     /* --------------------------------------------------------------------- *
